@@ -31,6 +31,6 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: req.params.longURL/* What goes here? */ };
+  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] /* What goes here? */ };
   res.render("urls_show", templateVars);
 });
