@@ -52,7 +52,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] /* What goes here? */ };
+  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
 
@@ -64,14 +64,24 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
+  let longURL = urlDatabase[req.params.id];
   res.redirect(longURL);
 });
 
-// not working
 app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
   delete urlDatabase[id];
   res.redirect('/urls');
 });
 
+app.post("/urls/:id/edit", (req, res) => {
+  const id = req.params.id;
+  res.redirect('/urls/' + id);
+});
+
+app.post("/urls/:id/update", (req, res) => {
+  const id = req.params.id;
+  urlDatabase[id] = req.body.longURL
+  console.log(urlDatabase);
+  res.redirect('/urls/' + id);
+});
