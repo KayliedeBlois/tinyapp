@@ -55,7 +55,6 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
-
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString(6)
   urlDatabase[shortURL] = req.body.longURL;
@@ -84,4 +83,10 @@ app.post("/urls/:id/update", (req, res) => {
   urlDatabase[id] = req.body.longURL
   console.log(urlDatabase);
   res.redirect('/urls/' + id);
+});
+
+app.post("/login", (req, res) => {
+  console.log(req.body.username);
+  res.cookie('username', req.body.username);
+  res.redirect('/urls/');
 });
