@@ -10,17 +10,33 @@
       aria-expanded="false"
       aria-label="Toggle navigation"
     >
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-      <div class="navbar-nav">
-        <a class="nav-item nav-link" href="/urls">My URLs</a>
-        <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav">
+      <a class="nav-item nav-link" href="/urls">My URLs</a>
+      <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+    
+
+    <% if(username) {%>
+      <div class ="nav-item nav-link" style="margin-left: 1500px;">
+        <p>Logged in as:</p>
+      </div>
+        <div class="nav-item nav-link">
+          <%= username %>
+        </div>
+          <form method="POST" action="/logout">
+            <button class="btn btn-outline-dark">Logout</button>
+          </form>
+    <% } else { %>
+      <div class="nav-item nav-link" style="margin-left: 1500px;">
         <form method="POST" action="/login">
-          <input type="text" name="username">
-          <button type="submit">Login</button>
+          <label for="new"></label>
+          <input class="form-control" type="text" placeholder="Username" name="username" />
+          <button type="submit" class="btn btn-outline-dark">Login</button>
         </form>
       </div>
+      <% } %>
     </div>
   </nav>
 </header>
