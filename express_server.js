@@ -14,6 +14,7 @@ const { response } = require("express");
 //once new ID is generated, add to data base "id": longURL (key value pair)
 const cookieParser = require("cookie-parser");
 const express = require("express");
+const morgan = require("morgan");
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -21,7 +22,7 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
+app.use(morgan('dev'));
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -42,8 +43,8 @@ const users = {
 };
 
 app.get("/urls", (req, res) => {
-  console.log(req.cookies.username);
-  const templateVars = {username: req.cookies.username, urls: urlDatabase };
+  //console.log(req.cookies.username);
+  const templateVars = {user: users[req.cookies.user_id], urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
@@ -64,12 +65,12 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = {username: req.cookies.username};
+  const templateVars = {user: users[req.cookies.user_id]};
   res.render("urls_new");
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { username: req.cookies.username, id: req.params.id, longURL: urlDatabase[req.params.id] };
+  const templateVars = { user: users[req.cookies.user_id], id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
 app.post("/urls", (req, res) => {
@@ -103,12 +104,12 @@ app.post("/urls/:id/update", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie('username', req.body.username);
+  //res.cookie('user_id', users.id);
   res.redirect('/urls/');
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect('/urls/');
 });
 
@@ -118,6 +119,7 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   let user = generateRandomString(8);
+  res.cookie('user_id', user);
   users[user] = {
     id: user,
     email: req.body.email,

@@ -18,12 +18,12 @@
       <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
     
 
-    <% if(typeof username !== 'undefined') {%>
+    <% if(typeof user !== 'undefined') {%>
       <div class ="nav-item nav-link" style="margin-left: 1000px;">
         <p>Logged in as:</p>
       </div>
         <div class="nav-item nav-link">
-          <%= username %>
+          <%= user.email %>
         </div>
           <form method="POST" action="/logout">
             <button class="btn btn-outline-dark">Logout</button>
@@ -32,7 +32,7 @@
       <div class="nav-item nav-link" style="margin-left: 1000px;">
         <form method="POST" action="/login">
           <label for="new"></label>
-          <input class="form-control" type="text" placeholder="Username" name="username" />
+          <input class="form-control" type="text" placeholder="Email" name="email" />
           <button type="submit" class="btn btn-outline-dark">Login</button>
         </form>
       </div>
