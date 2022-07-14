@@ -64,7 +64,9 @@ const userLookup = function(email) {
 app.get("/urls", (req, res) => {
   const templateVars = {user: users[req.cookies.user_id], urls: urlDatabase };
   res.render("urls_index", templateVars);
+  console.log(req.cookies.user_id);
 });
+
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -73,6 +75,8 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+//console.log(urlDatabase[fLViCN]);
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -83,14 +87,18 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+  if (req.cookies.user_id === undefined) {
+    res.redirect('/urls/');
+  }
   const templateVars = {user: users[req.cookies.user_id]};
   res.render("urls_new");
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { user: users[req.cookies.user_id], id: req.params.id, longURL: urlDatabase[req.params.id] };
+  const templateVars = { user: users[req.cookies.user_id], id: req.params.id, longURL: urlDatabase[req.params.id], urls: urlDatabase };
   res.render("urls_show", templateVars);
 });
+
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString(6)
   urlDatabase[shortURL] = req.body.longURL;
@@ -100,6 +108,7 @@ app.post("/urls", (req, res) => {
 app.get("/u/:id", (req, res) => {
   let longURL = urlDatabase[req.params.id];
   res.redirect(longURL);
+   
 });
 
 app.post("/urls/:id/delete", (req, res) => {
@@ -119,16 +128,15 @@ app.post("/urls/:id/update", (req, res) => {
   res.redirect('/urls/' + id);
 });
 
-// app.post("/login", (req, res) => {
-//   res.redirect('/urls/');
-// });
-
 app.post("/logout", (req, res) => {
   res.clearCookie('user_id');
   res.redirect('/urls/');
 });
 
 app.get("/register", (req, res) => {
+  if (req.cookies.user_id !== undefined) {
+    res.redirect('/urls/');
+  }
   res.render("urls_register");
 });
 
@@ -138,7 +146,6 @@ app.post("/register", (req, res) => {
   } 
 
   if (userLookup(req.body.email) !== null) {
-    //console.log('email taken');
     res.send('400 Error: Email is taken')
   }  
 
@@ -155,6 +162,10 @@ app.post("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
+  
+  if (req.cookies.user_id !== undefined) {
+    res.redirect('/urls/');
+  }
   res.render("urls_login");
 });
 

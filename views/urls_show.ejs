@@ -13,6 +13,9 @@
 
   <body>
     <%- include('partials/_header') %>
+    <% if (typeof longURL === "undefined") {%>
+      <h4>URL does not exist</h4>
+    <% } %>
     <div class="card text-center">
       <div class="card-header"></div>
       <div class="card-body">
