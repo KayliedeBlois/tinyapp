@@ -160,6 +160,15 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
   let user = userLookup(req.body.email);
+
+  if (userLookup(req.body.email) === null) {
+    res.send('403 Error: User does not exist')
+  }
+
+  if (userLookup(req.body.email) !== null && user.password !== req.body.password) {
+    res.send('403 Error: Incorrect password')
+  }
+
   res.cookie('user_id', user.id);
   res.redirect('/urls/');
 });
