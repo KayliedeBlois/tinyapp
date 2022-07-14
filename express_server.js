@@ -119,9 +119,9 @@ app.post("/urls/:id/update", (req, res) => {
   res.redirect('/urls/' + id);
 });
 
-app.post("/login", (req, res) => {
-  res.redirect('/urls/');
-});
+// app.post("/login", (req, res) => {
+//   res.redirect('/urls/');
+// });
 
 app.post("/logout", (req, res) => {
   res.clearCookie('user_id');
@@ -154,3 +154,12 @@ app.post("/register", (req, res) => {
   res.redirect('/urls/');
 });
 
+app.get("/login", (req, res) => {
+  res.render("urls_login");
+});
+
+app.post("/login", (req, res) => {
+  let user = userLookup(req.body.email);
+  res.cookie('user_id', user.id);
+  res.redirect('/urls/');
+});
