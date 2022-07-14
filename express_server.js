@@ -15,6 +15,7 @@ const { response } = require("express");
 const cookieParser = require("cookie-parser");
 const express = require("express");
 const morgan = require("morgan");
+const e = require("express");
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -39,11 +40,28 @@ const users = {
     id: "user2RandomID",
     email: "user2@example.com",
     password: "dishwasher-funk",
-  },
+  }
+};
+
+const userLookup = function(email) {
+
+  let emailExists;
+  let storedUser;
+
+  Object.values(users).some(function(user) {
+    if(user.email === email) {
+      emailExists = true;
+      storedUser = user;
+    }
+  });
+
+  if(emailExists) {
+    return storedUser;
+  }
+  return null;
 };
 
 app.get("/urls", (req, res) => {
-  //console.log(req.cookies.username);
   const templateVars = {user: users[req.cookies.user_id], urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
@@ -76,7 +94,6 @@ app.get("/urls/:id", (req, res) => {
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString(6)
   urlDatabase[shortURL] = req.body.longURL;
-  //console.log(urlDatabase);
   res.redirect('/urls/' + shortURL);
 });
 
@@ -99,12 +116,10 @@ app.post("/urls/:id/edit", (req, res) => {
 app.post("/urls/:id/update", (req, res) => {
   const id = req.params.id;
   urlDatabase[id] = req.body.longURL
-  //console.log(urlDatabase);
   res.redirect('/urls/' + id);
 });
 
 app.post("/login", (req, res) => {
-  //res.cookie('user_id', users.id);
   res.redirect('/urls/');
 });
 
@@ -118,12 +133,24 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  if (req.body.email === "" || req.body.password === "") {
+    res.send('400 Error: No input provided')
+  } 
+
+  if (userLookup(req.body.email) !== null) {
+    //console.log('email taken');
+    res.send('400 Error: Email is taken')
+  }  
+
   let user = generateRandomString(8);
   res.cookie('user_id', user);
+ 
   users[user] = {
     id: user,
     email: req.body.email,
     password: req.body.password
   }
+
   res.redirect('/urls/');
 });
+
