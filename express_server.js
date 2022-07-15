@@ -1,9 +1,9 @@
 // Generate String with 6 random characters
 function generateRandomString(length) {
-  var result           = '';
-  var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  var charactersLength = characters.length;
-  for ( var i = 0; i < length; i++ ) {
+  let result           = '';
+  let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let charactersLength = characters.length;
+  for ( let i = 0; i < length; i++ ) {
     result += characters.charAt(Math.floor(Math.random() * 
 charactersLength));
  }
@@ -12,7 +12,6 @@ charactersLength));
 
 const { response } = require("express");
 //once new ID is generated, add to data base "id": longURL (key value pair)
-const cookieParser = require("cookie-parser");
 const express = require("express");
 const morgan = require("morgan");
 const bcrypt = require("bcryptjs");
@@ -82,14 +81,15 @@ console.log(users);
   res.render("urls_index", templateVars);
 });
 
-
+//Homepage
 app.get("/", (req, res) => {
-  res.send("Hello!");
+    res.redirect('/login');
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
+// app.post("/", (req, res) => {
+//     res.redirect('/login');
+// })
+
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -99,16 +99,44 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+
+//My URLS page
+app.get("/urls", (req, res) => {
+  if (req.session.user_id === undefined) {
+    res.redirect('/login');
+  } else {
+    res.redirect('/urls');
+  }
+})
+app.post("/urls", (req, res) => {
+  let shortURL = generateRandomString(6)
+  console.log(shortURL);
+  urlDatabase[shortURL] = {
+    longURL: req.body.longURL,
+    userID: req.session.user_id
+  };
+
+  res.redirect('/urls/' + shortURL);
+});
+
+//Create new URL Page
 app.get("/urls/new", (req, res) => {
   const templateVars = {user: users[req.session.user_id]};
 
-  if (req.session.user_id === "undefined") {
-    res.redirect('/urls/');
+  if (req.session.user_id === undefined) {
+    res.redirect('/login');
   } else {
     res.render("urls_new", templateVars);
   }
 });
 
+//Short URL - redirecting to long URL site when clicked
+app.get("/u/:id", (req, res) => {
+  let longURL = urlDatabase[req.params.id].longURL;
+  res.redirect(longURL); 
+});
+
+//URLS ID page GET/PUSH & Functionality 
 app.get("/urls/:id", (req, res) => {
   let long = '';
 
@@ -124,25 +152,28 @@ app.get("/urls/:id", (req, res) => {
     res.send('400 Error: URL does not belong to you')
   } 
 
-
   const templateVars = { user: users[req.session.user_id], id: req.params.id, longURL: long, urls: urlDatabase };
   res.render("urls_show", templateVars);
 });
 
-app.post("/urls", (req, res) => {
-  let shortURL = generateRandomString(6)
-  console.log(shortURL);
-  urlDatabase[shortURL] = {
-    longURL: req.body.longURL,
-    userID: req.session.user_id
-  };
+app.post("/urls/:id", (req, res) => {
 
-  res.redirect('/urls/' + shortURL);
-});
+  if (req.params.id === undefined) {
+    res.send('403 Error: ShortURL does not exist');
+  }
 
-app.get("/u/:id", (req, res) => {
-  let longURL = urlDatabase[req.params.id].longURL;
-  res.redirect(longURL); 
+  if (req.session.user_id === undefined) {
+    res.send('403 Error: User not logged in');
+  }
+
+  if (urlsForUser(req.params.id) === []) {
+    res.send('403 Error: URL does not belong to you');
+  }
+
+  const id = req.params.id;
+
+  urlDatabase[id].longURL = req.body.longURL
+  res.redirect('/urls/' + id);
 });
 
 app.post("/urls/:id/delete", (req, res) => {
@@ -164,30 +195,9 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect('/urls');
 });
 
-app.post("/urls/:id", (req, res) => {
 
-  if (req.params.id === undefined) {
-    res.send('403 Error: ShortURL does not exist');
-  }
 
-  if (req.session.user_id === undefined) {
-    res.send('403 Error: User not logged in');
-  }
-
-  if (urlsForUser(req.params.id) === []) {
-    res.send('403 Error: URL does not belong to you');
-  }
-
-  const id = req.params.id;
-  urlDatabase[id] = req.body.longURL
-  res.redirect('/urls/' + id);
-});
-
-app.post("/logout", (req, res) => {
-  req.session.user_id = undefined;
-  res.redirect('/urls/');
-});
-
+//Registration Page GET/PUSH
 app.get("/register", (req, res) => {
 console.log(req.session.user_id);
   if (req.session.user_id !== undefined) {
@@ -218,6 +228,8 @@ app.post("/register", (req, res) => {
   res.redirect('/urls/');
 });
 
+
+//Login Page GET/PUSH
 app.get("/login", (req, res) => {
   if (req.session.user_id === undefined) {
     res.render("urls_login");
@@ -239,4 +251,16 @@ app.post("/login", (req, res) => {
 
   req.session.user_id = user.id
   res.redirect('/urls/');
+});
+
+
+//Logout GET/PUSH
+app.post("/logout", (req, res) => {
+  req.session = null;
+  res.redirect('/login');
+});
+
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });

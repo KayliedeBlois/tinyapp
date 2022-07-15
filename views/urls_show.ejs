@@ -14,8 +14,10 @@
   <body>
     <%- include('partials/_header') %>
     <% if (longURL === "") {%>
-      <h4>URL does not exist</h4>
-    <% } %>
+      <div class="alert alert-danger" role="alert">
+        URL does not exist!
+      </div>
+    <% } else { %>
     <div class="card text-center">
       <div class="card-header"></div>
       <div class="card-body">
@@ -29,11 +31,17 @@
         <h4 class="card-title">Edit</h4>
         <form method="POST" action="/urls/<%= id %>">
           <label for="new">New URL:</label> 
-          <input type="text" name="longURL">
+          <input
+            class="form-control"
+            type="text"
+            name="longURL"
+            placeholder="http://"
+          />
           <button type="submit" class="btn btn-outline-dark">Submit</button>
         </form>
       </div>
     </div>
+    <% } %>
     <!-- Bootstrap JS -->
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

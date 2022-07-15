@@ -11,7 +11,7 @@ const getUserByEmail = function (email, database) {
   });
 
   if(emailExists) {
-    return storedUser.id;
+    return storedUser;
   }
   return null;
 };
