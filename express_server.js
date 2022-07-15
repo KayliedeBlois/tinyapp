@@ -52,35 +52,37 @@ const urlDatabase = {
 };
 
 const users = {
-  // aJ48lW: {
-  //   id: "aJ48lW",
-  //   email: "user@example.com",
-  //   password: "purple-monkey-dinosaur"
-  // },
-  // user2RandomID: {
-  //   id: "user2RandomID",
-  //   email: "user2@example.com",
-  //   password: "dishwasher-funk"
-  // }
-};
-
-const userLookup = function(email) {
-
-  let emailExists;
-  let storedUser;
-
-  Object.values(users).some(function(user) {
-    if(user.email === email) {
-      emailExists = true;
-      storedUser = user;
-    }
-  });
-
-  if(emailExists) {
-    return storedUser;
+  aJ48lW: {
+    id: "aJ48lW",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
   }
-  return null;
 };
+
+const {getUserByEmail} = require('./helpers'); 
+
+// const getUserByEmail = function(email, database) {
+
+//   let emailExists;
+//   let storedUser;
+
+//   Object.values(database).some(function(user) {
+//     if(user.email === email) {
+//       emailExists = true;
+//       storedUser = user;
+//     }
+//   });
+
+//   if(emailExists) {
+//     return storedUser;
+//   }
+//   return null;
+// };
 
 const urlsForUser = function(id) {
 
@@ -147,7 +149,7 @@ app.get("/urls/:id", (req, res) => {
     res.send('400 Error: Not logged in')
   }
 
-  if (userLookup(req.params.id) === []) {
+  if (getUserByEmail(req.params.id, users) === []) {
     res.send('400 Error: URL does not belong to you')
   } 
 
@@ -235,7 +237,7 @@ app.post("/register", (req, res) => {
     res.send('400 Error: No input provided')
   } 
 
-  if (userLookup(req.body.email) !== null) {
+  if (getUserByEmail(req.body.email, users) !== null) {
     res.send('400 Error: Email is taken')
   }  
 
@@ -264,13 +266,13 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
 
-  let user = userLookup(req.body.email);
+  let user = getUserByEmail(req.body.email, users);
 
-  if (userLookup(req.body.email) === null) {
+  if (getUserByEmail(req.body.email, users) === null) {
     res.send('403 Error: User does not exist')
   }
 
-  if (userLookup(req.body.email) !== null && (!bcrypt.compareSync(req.body.password, user.password))) {
+  if (getUserByEmail(req.body.email, users) !== null && (!bcrypt.compareSync(req.body.password, user.password))) {
     res.send('403 Error: Incorrect password')
   }
 
