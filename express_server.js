@@ -46,9 +46,6 @@ const urlDatabase = {
     longURL: "https://www.google.ca",
     userID: "aJ48lW",
   },
-  // previously
-  // "b2xVn2": "http://www.lighthouselabs.ca",
-  // "9sm5xK": "http://www.google.com"
 };
 
 const users = {
@@ -66,45 +63,22 @@ const users = {
 
 const {getUserByEmail} = require('./helpers'); 
 
-// const getUserByEmail = function(email, database) {
-
-//   let emailExists;
-//   let storedUser;
-
-//   Object.values(database).some(function(user) {
-//     if(user.email === email) {
-//       emailExists = true;
-//       storedUser = user;
-//     }
-//   });
-
-//   if(emailExists) {
-//     return storedUser;
-//   }
-//   return null;
-// };
-
 const urlsForUser = function(id) {
-
   let storedURLs = [];
 
   Object.values(urlDatabase).some(function(url){
     if( id  === url.userID) {
-      storedURLs.push(url.longURL)
+      storedURLs.push(url.longURL);
     }
   });
   return storedURLs;
 };
-
-
-
 
 app.get("/urls", (req, res) => {
 
   console.log(req.session.user_id);
 console.log(users);
   const templateVars = {user: users[req.session.user_id], urls: urlDatabase };
-  
   res.render("urls_index", templateVars);
 });
 
@@ -117,8 +91,6 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-//console.log(urlDatabase[fLViCN]);
-
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
@@ -128,7 +100,6 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-
   const templateVars = {user: users[req.session.user_id]};
 
   if (req.session.user_id === "undefined") {
@@ -171,8 +142,7 @@ app.post("/urls", (req, res) => {
 
 app.get("/u/:id", (req, res) => {
   let longURL = urlDatabase[req.params.id].longURL;
-  res.redirect(longURL);
-   
+  res.redirect(longURL); 
 });
 
 app.post("/urls/:id/delete", (req, res) => {
@@ -193,11 +163,6 @@ app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[id];
   res.redirect('/urls');
 });
-
-// app.post("/urls/:id", (req, res) => {
-//   const id = req.params.id;
-//   res.redirect('/urls/' + id);
-// });
 
 app.post("/urls/:id", (req, res) => {
 
@@ -229,7 +194,6 @@ console.log(req.session.user_id);
     res.redirect('/urls/');
   } 
     res.render("urls_register");
-  
 });
 
 app.post("/register", (req, res) => {
@@ -255,13 +219,10 @@ app.post("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-
-
   if (req.session.user_id === undefined) {
     res.render("urls_login");
   } 
   res.redirect('/urls/');
-
 });
 
 app.post("/login", (req, res) => {
@@ -277,8 +238,5 @@ app.post("/login", (req, res) => {
   }
 
   req.session.user_id = user.id
-  //res.end(req.session.user_id)
-// res.cookie('user_id', user.id);
   res.redirect('/urls/');
- 
 });
