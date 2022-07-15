@@ -13,7 +13,7 @@
 
   <body>
     <%- include('partials/_header') %>
-    <% if (typeof longURL === "undefined") {%>
+    <% if (longURL === "") {%>
       <h4>URL does not exist</h4>
     <% } %>
     <div class="card text-center">
@@ -27,7 +27,7 @@
       </div>
       <div class="card-footer text-muted">
         <h4 class="card-title">Edit</h4>
-        <form method="POST" action="/urls/<%= id %>/update">
+        <form method="POST" action="/urls/<%= id %>">
           <label for="new">New URL:</label> 
           <input type="text" name="longURL">
           <button type="submit" class="btn btn-outline-dark">Submit</button>

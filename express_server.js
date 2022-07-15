@@ -15,24 +15,35 @@ const { response } = require("express");
 const cookieParser = require("cookie-parser");
 const express = require("express");
 const morgan = require("morgan");
-const e = require("express");
 
 const app = express();
 const PORT = 8080; // default port 8080
 
+// view engine setup
 app.set("view engine", "ejs");
+
+// Middlewares
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan('dev'));
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
+  // previously
+  // "b2xVn2": "http://www.lighthouselabs.ca",
+  // "9sm5xK": "http://www.google.com"
 };
 
 const users = {
-  userRandomID: {
-    id: "userRandomID",
+  aJ48lW: {
+    id: "aJ48lW",
     email: "user@example.com",
     password: "purple-monkey-dinosaur",
   },
@@ -61,10 +72,27 @@ const userLookup = function(email) {
   return null;
 };
 
+const urlsForUser = function(id) {
+
+  let storedURLs = [];
+
+  Object.values(urlDatabase).some(function(url){
+    if( id  === url.userID) {
+      storedURLs.push(url.longURL)
+    }
+  });
+  return storedURLs;
+};
+
+
+
+
 app.get("/urls", (req, res) => {
   const templateVars = {user: users[req.cookies.user_id], urls: urlDatabase };
   res.render("urls_index", templateVars);
   console.log(req.cookies.user_id);
+
+  console.log(urlDatabase);
 });
 
 
@@ -91,38 +119,84 @@ app.get("/urls/new", (req, res) => {
     res.redirect('/urls/');
   }
   const templateVars = {user: users[req.cookies.user_id]};
-  res.render("urls_new");
+  res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { user: users[req.cookies.user_id], id: req.params.id, longURL: urlDatabase[req.params.id], urls: urlDatabase };
+  let long = '';
+
+  if (urlDatabase[req.params.id] !== undefined) {
+    long = urlDatabase[req.params.id].longURL;
+  }
+  console.log(long);
+  if (req.cookies.user_id === undefined) {
+    res.send('400 Error: Not logged in')
+  }
+
+  if (userLookup(req.params.id) === []) {
+    res.send('400 Error: URL does not belong to you')
+  } 
+
+
+  const templateVars = { user: users[req.cookies.user_id], id: req.params.id, longURL: long, urls: urlDatabase };
   res.render("urls_show", templateVars);
 });
 
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString(6)
-  urlDatabase[shortURL] = req.body.longURL;
+  console.log(shortURL);
+  urlDatabase[shortURL] = {
+    longURL: req.body.longURL,
+    userID: req.cookies.user_id
+  };
+
   res.redirect('/urls/' + shortURL);
 });
 
 app.get("/u/:id", (req, res) => {
-  let longURL = urlDatabase[req.params.id];
+  let longURL = urlDatabase[req.params.id].longURL;
   res.redirect(longURL);
    
 });
 
 app.post("/urls/:id/delete", (req, res) => {
+
+  if (req.params.id === undefined) {
+    res.send('403 Error: ShortURL does not exist');
+  }
+
+  if (req.cookies.user_id === undefined) {
+    res.send('403 Error: User not logged in');
+  }
+
+  if (urlsForUser(req.params.id) === []) {
+    res.send('403 Error: URL does not belong to you');
+  }
+  
   const id = req.params.id;
   delete urlDatabase[id];
   res.redirect('/urls');
 });
 
-app.post("/urls/:id/edit", (req, res) => {
-  const id = req.params.id;
-  res.redirect('/urls/' + id);
-});
+// app.post("/urls/:id", (req, res) => {
+//   const id = req.params.id;
+//   res.redirect('/urls/' + id);
+// });
 
-app.post("/urls/:id/update", (req, res) => {
+app.post("/urls/:id", (req, res) => {
+
+  if (req.params.id === undefined) {
+    res.send('403 Error: ShortURL does not exist');
+  }
+
+  if (req.cookies.user_id === undefined) {
+    res.send('403 Error: User not logged in');
+  }
+
+  if (urlsForUser(req.params.id) === []) {
+    res.send('403 Error: URL does not belong to you');
+  }
+
   const id = req.params.id;
   urlDatabase[id] = req.body.longURL
   res.redirect('/urls/' + id);
@@ -162,7 +236,6 @@ app.post("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  
   if (req.cookies.user_id !== undefined) {
     res.redirect('/urls/');
   }

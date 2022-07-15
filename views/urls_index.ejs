@@ -21,7 +21,7 @@
     <main style="margin: 1em;">
       <h3>My URLs</h3>
         <% if (typeof user === 'undefined') {%>
-          <h4>Create an account to shorten URLs.</h4>
+          <h4>Login/Register to shorten URLs.</h4>
         <% } %>
       <table class="table">
         <thead>
@@ -34,20 +34,20 @@
         </thead>
         <tbody>
           <% for (let id in urls) { %>
-            <tr>
-              <td><%= id %></td>
-              <td><%= urls[id] %></td>
-              <td>
-                <form method="POST" action="/urls/<%= id %>/edit">
-                  <button type="submit" class="btn btn-outline-primary">Edit</button>
-                </form>
-              </td>
-              <td>
-                <form method="POST" action="/urls/<%= id %>/delete">
-                  <button type="submit" class="btn btn-outline-danger">Delete</button>
-                </form>
-              </td>
-            </tr>
+            <% if (typeof user !== 'undefined') { %>
+              <% if (user.id === urls[id].userID) { %>
+              <tr>
+                <td><%= id %></td>
+                <td><%= urls[id].longURL %></td>
+                <td>
+                  <a href="/urls/<%= id %>" class="btn btn-outline-primary">Edit</a>
+                </td>
+                <td>
+                  <a href="/urls/<%= id %>/delete" class="btn btn-outline-danger">Delete</a>
+                </td>
+              </tr>
+              <% } %>
+            <% } %>
           <% } %>
         </tbody>
         
