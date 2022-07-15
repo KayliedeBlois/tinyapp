@@ -16,6 +16,8 @@ const cookieParser = require("cookie-parser");
 const express = require("express");
 const morgan = require("morgan");
 const bcrypt = require("bcryptjs");
+const cookieSession = require("cookie-session");
+const e = require("express");
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -25,8 +27,15 @@ app.set("view engine", "ejs");
 
 // Middlewares
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+//app.use(cookieParser());
 app.use(morgan('dev'));
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1'],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}));
 
 const urlDatabase = {
   b6UTxQ: {
@@ -89,10 +98,12 @@ const urlsForUser = function(id) {
 
 
 app.get("/urls", (req, res) => {
-  const templateVars = {user: users[req.cookies.user_id], urls: urlDatabase };
-  res.render("urls_index", templateVars);
-  console.log(req.cookies.user_id);
 
+  console.log(req.session.user_id);
+console.log(users);
+  const templateVars = {user: users[req.session.user_id], urls: urlDatabase };
+  
+  res.render("urls_index", templateVars);
 });
 
 
@@ -115,11 +126,14 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  if (req.cookies.user_id === undefined) {
+
+  const templateVars = {user: users[req.session.user_id]};
+
+  if (req.session.user_id === "undefined") {
     res.redirect('/urls/');
+  } else {
+    res.render("urls_new", templateVars);
   }
-  const templateVars = {user: users[req.cookies.user_id]};
-  res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -129,7 +143,7 @@ app.get("/urls/:id", (req, res) => {
     long = urlDatabase[req.params.id].longURL;
   }
   console.log(long);
-  if (req.cookies.user_id === undefined) {
+  if (req.session.user_id === undefined) {
     res.send('400 Error: Not logged in')
   }
 
@@ -138,7 +152,7 @@ app.get("/urls/:id", (req, res) => {
   } 
 
 
-  const templateVars = { user: users[req.cookies.user_id], id: req.params.id, longURL: long, urls: urlDatabase };
+  const templateVars = { user: users[req.session.user_id], id: req.params.id, longURL: long, urls: urlDatabase };
   res.render("urls_show", templateVars);
 });
 
@@ -147,7 +161,7 @@ app.post("/urls", (req, res) => {
   console.log(shortURL);
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
-    userID: req.cookies.user_id
+    userID: req.session.user_id
   };
 
   res.redirect('/urls/' + shortURL);
@@ -165,7 +179,7 @@ app.post("/urls/:id/delete", (req, res) => {
     res.send('403 Error: ShortURL does not exist');
   }
 
-  if (req.cookies.user_id === undefined) {
+  if (req.session.user_id === undefined) {
     res.send('403 Error: User not logged in');
   }
 
@@ -189,7 +203,7 @@ app.post("/urls/:id", (req, res) => {
     res.send('403 Error: ShortURL does not exist');
   }
 
-  if (req.cookies.user_id === undefined) {
+  if (req.session.user_id === undefined) {
     res.send('403 Error: User not logged in');
   }
 
@@ -203,15 +217,17 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id');
+  req.session.user_id = undefined;
   res.redirect('/urls/');
 });
 
 app.get("/register", (req, res) => {
-  if (req.cookies.user_id !== undefined) {
+console.log(req.session.user_id);
+  if (req.session.user_id !== undefined) {
     res.redirect('/urls/');
-  }
-  res.render("urls_register");
+  } 
+    res.render("urls_register");
+  
 });
 
 app.post("/register", (req, res) => {
@@ -224,7 +240,8 @@ app.post("/register", (req, res) => {
   }  
 
   let user = generateRandomString(8);
-  res.cookie('user_id', user);
+  req.session.user_id = user
+  // res.cookie('user_id', user);
  
   users[user] = {
     id: user,
@@ -236,14 +253,16 @@ app.post("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  if (req.cookies.user_id !== undefined) {
-    res.redirect('/urls/');
-  }
-  res.render("urls_login");
+
+
+  if (req.session.user_id === undefined) {
+    res.render("urls_login");
+  } 
+  res.redirect('/urls/');
+
 });
 
 app.post("/login", (req, res) => {
-
 
   let user = userLookup(req.body.email);
 
@@ -255,7 +274,9 @@ app.post("/login", (req, res) => {
     res.send('403 Error: Incorrect password')
   }
 
-  res.cookie('user_id', user.id);
+  req.session.user_id = user.id
+  //res.end(req.session.user_id)
+// res.cookie('user_id', user.id);
   res.redirect('/urls/');
  
 });
