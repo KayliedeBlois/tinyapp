@@ -15,6 +15,7 @@ const { response } = require("express");
 const cookieParser = require("cookie-parser");
 const express = require("express");
 const morgan = require("morgan");
+const bcrypt = require("bcryptjs");
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -42,16 +43,16 @@ const urlDatabase = {
 };
 
 const users = {
-  aJ48lW: {
-    id: "aJ48lW",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
-  },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
-  }
+  // aJ48lW: {
+  //   id: "aJ48lW",
+  //   email: "user@example.com",
+  //   password: "purple-monkey-dinosaur"
+  // },
+  // user2RandomID: {
+  //   id: "user2RandomID",
+  //   email: "user2@example.com",
+  //   password: "dishwasher-funk"
+  // }
 };
 
 const userLookup = function(email) {
@@ -92,7 +93,6 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
   console.log(req.cookies.user_id);
 
-  console.log(urlDatabase);
 });
 
 
@@ -229,7 +229,7 @@ app.post("/register", (req, res) => {
   users[user] = {
     id: user,
     email: req.body.email,
-    password: req.body.password
+    password: bcrypt.hashSync(req.body.password, 10)
   }
 
   res.redirect('/urls/');
@@ -243,16 +243,19 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
+
+
   let user = userLookup(req.body.email);
 
   if (userLookup(req.body.email) === null) {
     res.send('403 Error: User does not exist')
   }
 
-  if (userLookup(req.body.email) !== null && user.password !== req.body.password) {
+  if (userLookup(req.body.email) !== null && (!bcrypt.compareSync(req.body.password, user.password))) {
     res.send('403 Error: Incorrect password')
   }
 
   res.cookie('user_id', user.id);
   res.redirect('/urls/');
+ 
 });
